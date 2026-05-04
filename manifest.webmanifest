@@ -1,0 +1,10 @@
+{
+  "name": "Hábitos — Simone",
+  "short_name": "Hábitos",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f10",
+  "theme_color": "#1a1a1a",
+  "description": "Tabla de buenos hábitos diaria",
+  "icons": []
+}

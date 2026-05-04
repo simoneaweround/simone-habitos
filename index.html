@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Hábitos — Simone</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{
+    --bg:#ffffff; --panel:#fafaf7; --line:#e6e3dc; --ink:#1a1a1a;
+    --muted:#8a8a85; --accent:#b8862f; --good:#2f7d52; --good-soft:#d4ecd9;
+    --blocked:#f1efea;
+    font-size:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+  header{padding:14px 16px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.94);backdrop-filter:saturate(180%) blur(10px);z-index:10}
+  h1{margin:0;font-size:14px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;color:var(--accent)}
+  .subtitle{font-size:11px;color:var(--muted);margin-top:2px}
+  .week{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .week b{color:var(--ink);font-weight:600}
+  .week button{background:#fff;border:1px solid var(--line);color:var(--ink);padding:5px 11px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500}
+  .week button:hover{border-color:var(--accent);color:var(--accent)}
+
+  .quick{margin:10px 16px 0;display:flex;gap:6px;align-items:center}
+  .quick input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;background:#fff}
+  .quick input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,134,47,.15)}
+  .quick button{padding:9px 14px;border:none;background:var(--ink);color:#fff;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
+  .quick button:hover{background:var(--accent)}
+  .hint{font-size:11px;color:var(--muted);margin:6px 16px 0}
+
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:12px 16px 0}
+  .metric{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+  .metric .value{font-size:22px;font-weight:700;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}
+  .metric .value small{font-size:13px;color:var(--muted);font-weight:500;margin-left:3px}
+  .metric.gold .value{color:var(--accent)}
+
+  .charts{padding:14px 16px 0;display:grid;grid-template-columns:1fr;gap:14px}
+  @media (min-width:780px){ .charts{grid-template-columns:1fr 1fr} }
+  .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .chart-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:10px}
+  .bars{display:flex;align-items:flex-end;justify-content:space-between;height:120px;gap:5px}
+  .bar{flex:1;background:linear-gradient(180deg,var(--accent),#dcb766);border-radius:5px 5px 0 0;position:relative;min-height:2px;transition:height .25s}
+  .bar.today{outline:2px solid var(--ink);outline-offset:1px}
+  .bar .v{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--muted);text-transform:uppercase}
+  .bar-labels span{flex:1;text-align:center}
+  .heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .hcell{aspect-ratio:1/1;border-radius:3px;background:#eeece7;position:relative}
+  .hcell[data-l="1"]{background:#e7d9b6}
+  .hcell[data-l="2"]{background:#d2b06a}
+  .hcell[data-l="3"]{background:#b8862f}
+  .hcell[data-l="4"]{background:#7a5814}
+  .hcell .tt{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:10px;padding:2px 5px;border-radius:3px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:5}
+  .hcell:hover .tt{opacity:1}
+  .hm-legend{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--muted)}
+  .hm-legend .sw{width:11px;height:11px;border-radius:2px}
+
+  main{padding:14px 6px 100px;overflow-x:auto}
+  table{width:100%;min-width:640px;border-collapse:collapse;font-size:13px;background:#fff}
+  th,td{border:1px solid var(--line);padding:0;text-align:center;height:32px;min-width:42px}
+  th{background:var(--panel);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+  th.day-today{color:var(--accent);background:#fbf6ea}
+  td.habit{text-align:left;padding:6px 10px;background:var(--panel);font-weight:500;font-size:12.5px;line-height:1.25;min-width:200px;width:200px;position:sticky;left:0;z-index:1;color:var(--ink)}
+  td.habit .num{color:var(--muted);font-size:10px;margin-right:6px;font-variant-numeric:tabular-nums}
+  td.cell{cursor:pointer;user-select:none;transition:background .12s}
+  td.cell:hover{background:#f5f5f0}
+  td.cell.done{background:var(--good);color:#fff;font-weight:700}
+  td.cell.done::before{content:"✓"}
+  td.total{background:var(--panel);color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;font-size:13px}
+  tr.totals td{background:#f5f3ec;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  tr.totals td.habit{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+
+  .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  .actions .left{display:flex;gap:8px;flex-wrap:wrap}
+  .actions button{background:#fff;border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500}
+  .actions button.primary{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+  .actions button:hover{border-color:var(--accent);color:var(--accent)}
+  .actions button.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s, transform .2s;pointer-events:none;z-index:100}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+  @media (max-width:600px){
+    td.habit{min-width:150px;width:150px;font-size:11px;padding:5px 8px}
+    th,td{min-width:34px;font-size:11px}
+    .metric .value{font-size:18px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tabla de Buenos Hábitos</h1>
+  <div class="subtitle">Simone · 27 hábitos diarios</div>
+  <div class="week">
+    <button id="prevWeek" aria-label="Semana anterior">‹</button>
+    <b id="weekLabel"></b>
+    <button id="nextWeek" aria-label="Semana siguiente">›</button>
+    <button id="thisWeek">hoy</button>
+  </div>
+</header>
+
+<div class="quick">
+  <input id="quickInput" type="text" placeholder="Reportar hoy: ej. desayuno comida cena 5,7,9 o 'todos'" autocomplete="off">
+  <button id="quickGo">Marcar</button>
+</div>
+<div class="hint" id="quickHint">Tip: separa con espacios o comas. Reconoce nombres parciales (ej: "agenda" = avanzar agencia).</div>
+
+<div class="metrics">
+  <div class="metric gold"><div class="label">Hoy</div><div class="value" id="mToday">0<small>/27</small></div></div>
+  <div class="metric"><div class="label">Semana</div><div class="value" id="mWeek">0%</div></div>
+  <div class="metric"><div class="label">Mes</div><div class="value" id="mMonth">0%</div></div>
+  <div class="metric"><div class="label">Racha</div><div class="value" id="mStreak">0<small>días</small></div></div>
+</div>
+
+<div class="charts">
+  <div class="chart-card">
+    <div class="chart-title">Esta semana · hábitos por día</div>
+    <div class="bars" id="weekBars"></div>
+    <div class="bar-labels"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Últimas 5 semanas · heatmap</div>
+    <div class="heatmap" id="heatmap"></div>
+    <div class="hm-legend">menos
+      <span class="sw" style="background:#eeece7"></span>
+      <span class="sw" style="background:#e7d9b6"></span>
+      <span class="sw" style="background:#d2b06a"></span>
+      <span class="sw" style="background:#b8862f"></span>
+      <span class="sw" style="background:#7a5814"></span>
+      más
+    </div>
+  </div>
+</div>
+
+<main>
+  <table id="grid"></table>
+</main>
+
+<div class="actions">
+  <div class="left">
+    <button id="markAllToday" class="primary">Marcar todo hoy</button>
+    <button id="exportCsv">Exportar CSV</button>
+    <button id="resetWeek">Reset semana</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const HABITS = [
+  "Tener pensamientos positivos",
+  "No tener pensamientos negativos",
+  "Leer 5 páginas de un libro",
+  "Verde",
+  "Dejar el cigarro",
+  "Crecimiento personal",
+  "Crecimiento profesional",
+  "Actualizar hoja gastos",
+  "Entrenar 1 vez",
+  "Entrenar 2 veces",
+  "Salir (no súper)",
+  "7 min entrenamiento perros",
+  "Avanzar agencia inmobiliaria",
+  "Avanzar hidroponia",
+  "Meditación 1",
+  "Meditación 2",
+  "Peso",
+  "Explorar lugares nuevos",
+  "Desayuno",
+  "Comida",
+  "Cena",
+  "Bicicleta",
+  "Pendiente",
+  "Wingfoil",
+  "Mantenimiento casa",
+  "Ver un curso min. 30 minutos",
+  "Grabación de contenido"
+];
+
+const DAYS = ["LUN","MAR","MIÉ","JUE","VIE","SÁB","DOM"];
+const STORE_KEY = "habitos_simone_v1";
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||"{}"); }catch(e){ return {}; } }
+function save(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+let state = load();
+
+function dateKey(d){
+  const yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+function mondayOf(d){
+  const x=new Date(d); x.setHours(0,0,0,0);
+  const day=x.getDay(); const diff=day===0 ? -6 : 1-day;
+  x.setDate(x.getDate()+diff); return x;
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmtRange(monday){
+  const end=addDays(monday,6);
+  const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  return `${monday.getDate()} ${m[monday.getMonth()]} – ${end.getDate()} ${m[end.getMonth()]} ${end.getFullYear()}`;
+}
+function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").trim(); }
+
+let viewMonday = mondayOf(new Date());
+const today = dateKey(new Date());
+
+function isDone(dk, h){ return !!(state[dk] && state[dk][h]); }
+function setDone(dk, h, v){
+  if(!state[dk]) state[dk]={};
+  if(v) state[dk][h]=true; else delete state[dk][h];
+  if(Object.keys(state[dk]).length===0) delete state[dk];
+  save(state);
+}
+function dayCount(dk){ return state[dk] ? Object.keys(state[dk]).length : 0; }
+
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function renderGrid(){
+  const tbl = document.getElementById('grid');
+  document.getElementById('weekLabel').textContent = fmtRange(viewMonday);
+  const dayKeys = []; for(let i=0;i<7;i++) dayKeys.push(dateKey(addDays(viewMonday,i)));
+
+  let html = '<thead><tr><th class="habit"></th>';
+  for(let i=0;i<7;i++){
+    const isToday = dayKeys[i] === today;
+    const d = addDays(viewMonday,i);
+    html += `<th class="${isToday?'day-today':''}">${DAYS[i]}<br><span style="font-size:10px;font-weight:400;opacity:.7">${d.getDate()}</span></th>`;
+  }
+  html += '<th>Σ</th></tr></thead><tbody>';
+
+  HABITS.forEach((h, hi) => {
+    html += `<tr><td class="habit"><span class="num">${hi+1}</span>${h}</td>`;
+    let rt = 0;
+    for(let i=0;i<7;i++){
+      const dk = dayKeys[i]; const done = isDone(dk, hi);
+      if(done) rt++;
+      html += `<td class="cell ${done?'done':''}" data-d="${dk}" data-h="${hi}"></td>`;
+    }
+    html += `<td class="total">${rt}</td></tr>`;
+  });
+
+  html += '<tr class="totals"><td class="habit">Total día</td>';
+  let wt = 0;
+  for(let i=0;i<7;i++){ const c = dayCount(dayKeys[i]); wt += c; html += `<td>${c}</td>`; }
+  html += `<td class="total">${wt}</td></tr></tbody>`;
+  tbl.innerHTML = html;
+
+  document.querySelectorAll('td.cell').forEach(td=>{
+    td.addEventListener('click', () => {
+      const dk=td.dataset.d, hi=+td.dataset.h;
+      setDone(dk, hi, !isDone(dk, hi));
+      renderAll();
+    });
+  });
+}
+
+function renderMetrics(){
+  const tCount = dayCount(today);
+  document.getElementById('mToday').innerHTML = `${tCount}<small>/27</small>`;
+
+  // week
+  const wm = mondayOf(new Date()); let wDone=0;
+  for(let i=0;i<7;i++) wDone += dayCount(dateKey(addDays(wm,i)));
+  const wPct = Math.round((wDone/(27*7))*100);
+  document.getElementById('mWeek').textContent = wPct + '%';
+
+  // month (last 30 days)
+  let mDone=0;
+  for(let i=0;i<30;i++) mDone += dayCount(dateKey(addDays(new Date(), -i)));
+  const mPct = Math.round((mDone/(27*30))*100);
+  document.getElementById('mMonth').textContent = mPct + '%';
+
+  // streak: consecutive days from today (or yesterday if today=0) with at least 1 habit
+  let streak=0;
+  let cursor = tCount > 0 ? new Date() : addDays(new Date(),-1);
+  for(;;){
+    if(dayCount(dateKey(cursor)) > 0){ streak++; cursor = addDays(cursor,-1); }
+    else break;
+    if(streak > 365) break;
+  }
+  document.getElementById('mStreak').innerHTML = `${streak}<small>${streak===1?'día':'días'}</small>`;
+}
+
+function renderWeekChart(){
+  const wm = mondayOf(new Date());
+  const counts = []; for(let i=0;i<7;i++) counts.push(dayCount(dateKey(addDays(wm,i))));
+  const max = Math.max(27, ...counts, 1);
+  const todayIdx = (new Date().getDay()+6)%7;
+  const html = counts.map((c,i)=>{
+    const h = Math.round((c/max)*100);
+    return `<div class="bar ${i===todayIdx?'today':''}" style="height:${Math.max(h,2)}%"><span class="v">${c||''}</span></div>`;
+  }).join('');
+  document.getElementById('weekBars').innerHTML = html;
+}
+
+function renderHeatmap(){
+  // last 5 weeks ending sunday of this week, grouped by week of 7 days lun→dom
+  const thisMon = mondayOf(new Date());
+  const startMon = addDays(thisMon, -7*4);
+  let html = '';
+  for(let r=0;r<5;r++){
+    for(let c=0;c<7;c++){
+      const d = addDays(startMon, r*7+c);
+      const dk = dateKey(d); const cnt = dayCount(dk);
+      let lvl = 0;
+      if(cnt>=1) lvl=1;
+      if(cnt>=6) lvl=2;
+      if(cnt>=12) lvl=3;
+      if(cnt>=18) lvl=4;
+      const isFut = d > new Date();
+      html += `<div class="hcell" data-l="${isFut?0:lvl}"><span class="tt">${d.getDate()}/${d.getMonth()+1} · ${cnt}/27</span></div>`;
+    }
+  }
+  document.getElementById('heatmap').innerHTML = html;
+}
+
+function renderAll(){
+  renderGrid();
+  renderMetrics();
+  renderWeekChart();
+  renderHeatmap();
+}
+
+// Quick input parser
+function parseQuick(input){
+  const text = norm(input);
+  if(!text) return [];
+  if(/^todos?$/.test(text) || /^all$/.test(text)){ return HABITS.map((_,i)=>i); }
+  const tokens = text.split(/[ ,;]+/).filter(Boolean);
+  const indexes = new Set();
+  const habitsNorm = HABITS.map(norm);
+  tokens.forEach(tok => {
+    // numeric: 1-based index
+    if(/^\d+$/.test(tok)){
+      const n = parseInt(tok,10) - 1;
+      if(n>=0 && n<HABITS.length) indexes.add(n);
+      return;
+    }
+    // ranges 1-5
+    const r = tok.match(/^(\d+)-(\d+)$/);
+    if(r){
+      const a=parseInt(r[1],10)-1, b=parseInt(r[2],10)-1;
+      for(let i=Math.min(a,b);i<=Math.max(a,b);i++) if(i>=0 && i<HABITS.length) indexes.add(i);
+      return;
+    }
+    // fuzzy: token must appear as substring in habit
+    let bestI=-1, bestScore=0;
+    habitsNorm.forEach((hn,i)=>{
+      if(hn.includes(tok)){
+        const score = tok.length / hn.length;
+        if(score>bestScore){ bestScore=score; bestI=i; }
+      }
+    });
+    if(bestI>=0) indexes.add(bestI);
+  });
+  return [...indexes];
+}
+
+document.getElementById('quickGo').onclick = () => {
+  const v = document.getElementById('quickInput').value;
+  const idx = parseQuick(v);
+  if(!idx.length){ toast('No reconocí nada'); return; }
+  idx.forEach(i => setDone(today, i, true));
+  document.getElementById('quickInput').value = '';
+  renderAll();
+  toast(`Marcado: ${idx.length} hábito${idx.length>1?'s':''}`);
+};
+document.getElementById('quickInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('quickGo').click();
+});
+
+document.getElementById('markAllToday').onclick = () => {
+  HABITS.forEach((_,i)=>setDone(today, i, true));
+  renderAll(); toast('Día completo marcado');
+};
+
+document.getElementById('prevWeek').onclick = () => { viewMonday = addDays(viewMonday, -7); renderGrid(); };
+document.getElementById('nextWeek').onclick = () => { viewMonday = addDays(viewMonday, 7); renderGrid(); };
+document.getElementById('thisWeek').onclick = () => { viewMonday = mondayOf(new Date()); renderGrid(); };
+
+document.getElementById('exportCsv').onclick = () => {
+  const rows = [['fecha','habito_idx','habito','done']];
+  Object.keys(state).sort().forEach(dk => {
+    Object.keys(state[dk]).forEach(hi => rows.push([dk, hi, HABITS[+hi], '1']));
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `habitos_simone_${dateKey(new Date())}.csv`;
+  a.click();
+};
+
+document.getElementById('resetWeek').onclick = () => {
+  if(!confirm('¿Borrar todos los checks de esta semana?')) return;
+  for(let i=0;i<7;i++) delete state[dateKey(addDays(viewMonday,i))];
+  save(state); renderAll();
+};
+
+renderAll();
+</script>
+</body>
+</html>
