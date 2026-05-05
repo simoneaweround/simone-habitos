@@ -1,7 +1,6 @@
 name: daily-habits-reminder
 on:
   schedule:
-    # 21:30 CST (UTC-6) = 03:30 UTC next day
     - cron: "30 3 * * *"
   workflow_dispatch:
 jobs:
@@ -9,13 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send WhatsApp via CallMeBot
+        env:
+          PHONE: ${{ secrets.PHONE }}
+          APIKEY: ${{ secrets.APIKEY }}
         run: |
           DATE_HUMAN=$(TZ=America/Merida date +"%a %d %b")
+          MSG=$'Hábitos de hoy — '"$DATE_HUMAN"$'\n\n¿Marcaste tus hábitos del día?\n\nhttps://simoneaweround.github.io/simone-habitos/'
           curl -fsSG "https://api.callmebot.com/whatsapp.php" \
-            --data-urlencode "phone=${{ secrets.PHONE }}" \
-            --data-urlencode "text=Hábitos de hoy — ${DATE_HUMAN}
-
-¿Marcaste tus hábitos del día?
-
-https://simoneaweround.github.io/simone-habitos/" \
-            --data-urlencode "apikey=${{ secrets.APIKEY }}"
+            --data-urlencode "phone=$PHONE" \
+            --data-urlencode "text=$MSG" \
+            --data-urlencode "apikey=$APIKEY"
